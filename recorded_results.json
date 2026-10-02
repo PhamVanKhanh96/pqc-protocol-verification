@@ -1,0 +1,261 @@
+{
+  "solver": "ProVerif 2.04",
+  "completed_utc": "2026-10-02T10:49:19.394348+00:00",
+  "execution_route": "Original Windows x64 ProVerif 2.04 machine code through Linux PE/CRT ABI driver",
+  "engine_version": [
+    "Proverif 2.04. Cryptographic protocol verifier, by Bruno Blanchet, Vincent Cheval, and Marc Sylvestre"
+  ],
+  "engine_file_sha256": {
+    "pe_console": "8fc74da6db1c92a28d89242637476cb462fd19316cd5c90ad8984ffad77fa9eb",
+    "proverif.exe": "ff84743cabd83081a85a418da6afc957b49374193708bb8b7f0c25c01bd95a43"
+  },
+  "manifest_sha256": "9b41682885f4b4c60d95fd62a81285bac5a395c8f36b24056a51e00a70e7ef2c",
+  "runner_sha256": "a66c7f081a81fe8ed898d8d1bdb320fd64190de1f9a850213db3f5c66d50f0f0",
+  "record_scope": "Selected raw solver RESULT lines from the completed rerun; original full stdout/stderr receipts remain in the manuscript verification evidence.",
+  "models": [
+    {
+      "model": "pqc_authenticated_connection_v133.pv",
+      "source_sha256": "e247f941918eb489f8ed64b5662dffbbd1e26f55466be7374d21e81781e33465",
+      "exit_code": 0,
+      "timed_out": false,
+      "elapsed_seconds": 1.9146,
+      "full_stdout_sha256": "72642d3e55e55d6dfa4238ab8e2f93276a77bb06f8da015ce51e72b2e1579e30",
+      "full_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_result_lines": [
+        "RESULT not (event(SessionSecret(x,k)) && attacker(k)) is true.",
+        "RESULT not (event(WrappingSecret(x,k)) && attacker(k)) is true.",
+        "RESULT not (event(ContentSecret(x,k)) && attacker(k)) is true.",
+        "RESULT not (event(MessageSecret(x,m_4)) && attacker(m_4)) is true.",
+        "RESULT not (event(RootTX(r_2)) && attacker(r_2)) is true.",
+        "RESULT not (event(RootRX(r_2)) && attacker(r_2)) is true.",
+        "RESULT not (event(SigningKey(x,k)) && attacker(k)) is true.",
+        "RESULT not (event(DecapsulationKey(x,k)) && attacker(k)) is true.",
+        "RESULT event(TXCheckedRX(x,pk_2)) ==> event(IssuedRXKey(x,pk_2)) is true.",
+        "RESULT event(RXCheckedTX(x,pk_2)) ==> event(IssuedTXKey(x,pk_2)) is true.",
+        "RESULT event(RXAccepted(x,m_4)) ==> event(TXSigned(x,m_4)) is true.",
+        "RESULT inj-event(RXAccepted(x,m_4)) ==> inj-event(RXRequested(x)) is true.",
+        "RESULT event(RXAcceptedKey(x,ss_4,k)) ==> event(TXReadyKey(x,ss_4,k)) is true.",
+        "RESULT event(RXAccepted(x,m_4)) ==> event(Phase2Passed(idTX[],x)) && event(Phase2Passed(idRX[],x)) is true.",
+        "RESULT not (event(SigningCoins(x,r_2)) && attacker(r_2)) is true.",
+        "RESULT event(RXAccepted(x,m_4)) ==> event(TXSent(x,m_4)) is true.",
+        "RESULT not event(TXSent(x,m_4)) is false.",
+        "RESULT not event(RXAccepted(x,m_4)) is false.",
+        "RESULT event(LoginAccepted(u_2,a_5,n_2)) ==> event(LoginSubmitted(u_2,a_5,n_2)) is true.",
+        "RESULT inj-event(LoginAccepted(u_2,a_5,n_2)) ==> inj-event(LoginSubmitted(u_2,a_5,n_2)) is true.",
+        "RESULT not (event(RegisteredBio(u_2,b)) && attacker(b)) is true.",
+        "RESULT not event(LoginAccepted(u_2,a_5,n_2)) is false."
+      ]
+    },
+    {
+      "model": "phase2_no_z_check_v133.pv",
+      "source_sha256": "839ce8adc5e492d88ed546bd186007f75ae237f936dad57aa0d78241a4c3fb5e",
+      "exit_code": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.9745,
+      "full_stdout_sha256": "c2473db4776b9a2ccf57561a211c4d70dc5e30386c945a9071bd9d79ec74e839",
+      "full_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_result_lines": [
+        "RESULT event(LoginAccepted(u_2,a_5,n_2)) ==> event(LoginSubmitted(u_2,a_5,n_2)) is true.",
+        "RESULT inj-event(LoginAccepted(u_2,a_5,n_2)) ==> inj-event(LoginSubmitted(u_2,a_5,n_2)) is true.",
+        "RESULT not (event(RegisteredBio(u_2,b)) && attacker(b)) is true.",
+        "RESULT not event(LoginAccepted(u_2,a_5,n_2)) is false."
+      ]
+    },
+    {
+      "model": "phase2_no_bio_check_v133.pv",
+      "source_sha256": "7379cec2592e87abecd689cfda651fee9aa45dcf074ef8af818b0e7450437592",
+      "exit_code": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.3752,
+      "full_stdout_sha256": "f80f20cebcb53a8f6f43be433e3c945b575f4a1058b8b32554d9050b89fd60bd",
+      "full_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_result_lines": [
+        "RESULT event(LoginAccepted(u_2,a_5,n_2)) ==> event(LoginSubmitted(u_2,a_5,n_2)) is true.",
+        "RESULT inj-event(LoginAccepted(u_2,a_5,n_2)) ==> inj-event(LoginSubmitted(u_2,a_5,n_2)) is true.",
+        "RESULT not (event(RegisteredBio(u_2,b)) && attacker(b)) is true.",
+        "RESULT not event(LoginAccepted(u_2,a_5,n_2)) is false."
+      ]
+    },
+    {
+      "model": "phase2_bio_disclosed_v133.pv",
+      "source_sha256": "8b4dce5aded42daaa7750d2ac70d76161ec7e4aac6c8e682e0ffe3c9618dffe0",
+      "exit_code": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.3306,
+      "full_stdout_sha256": "2e0b30cee900461a6372254e248772154ab33158b1bedcd81d66fa743abc645f",
+      "full_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_result_lines": [
+        "RESULT event(LoginAccepted(u_2,a_5,n_2)) ==> event(LoginSubmitted(u_2,a_5,n_2)) is true.",
+        "RESULT inj-event(LoginAccepted(u_2,a_5,n_2)) ==> inj-event(LoginSubmitted(u_2,a_5,n_2)) is true.",
+        "RESULT not (event(RegisteredBio(u_2,b)) && attacker(b)) is false.",
+        "RESULT not event(LoginAccepted(u_2,a_5,n_2)) is false."
+      ]
+    },
+    {
+      "model": "phase2_no_z_bio_disclosed_v133.pv",
+      "source_sha256": "e90b512877df576a7c1d1f6ab9aa9baad4b68415d24338a63a7e60ef8a7fea76",
+      "exit_code": 0,
+      "timed_out": false,
+      "elapsed_seconds": 3.598,
+      "full_stdout_sha256": "8ed32215a823e2678863ed48fbb2ff092733aa62518ad327d2e86f538a160c13",
+      "full_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_result_lines": [
+        "RESULT event(LoginAccepted(u_2,a_5,n_2)) ==> event(LoginSubmitted(u_2,a_5,n_2)) is false.",
+        "RESULT inj-event(LoginAccepted(u_2,a_5,n_2)) ==> inj-event(LoginSubmitted(u_2,a_5,n_2)) is false.",
+        "RESULT not (event(RegisteredBio(u_2,b)) && attacker(b)) is false.",
+        "RESULT not event(LoginAccepted(u_2,a_5,n_2)) is false."
+      ]
+    },
+    {
+      "model": "phase2_response_disclosed_v133.pv",
+      "source_sha256": "d6222cddd210a37211341ba4482b4d1a14247632645dae58e789b2abb9e67990",
+      "exit_code": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.4528,
+      "full_stdout_sha256": "c350a957f45a8362198dcd62a71e28e9e1911ed6c8963456168c9ae18722cb49",
+      "full_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_result_lines": [
+        "RESULT event(LoginAccepted(u_2,a_5,n_2)) ==> event(LoginSubmitted(u_2,a_5,n_2)) is true.",
+        "RESULT inj-event(LoginAccepted(u_2,a_5,n_2)) ==> inj-event(LoginSubmitted(u_2,a_5,n_2)) is true.",
+        "RESULT not (event(RegisteredBio(u_2,b)) && attacker(b)) is true.",
+        "RESULT not event(LoginAccepted(u_2,a_5,n_2)) is false."
+      ]
+    },
+    {
+      "model": "phase2_no_bio_response_disclosed_v133.pv",
+      "source_sha256": "9f9c98a805dac029ca80130262da36d1139525926bbd5e3119a993c99a85a2f6",
+      "exit_code": 0,
+      "timed_out": false,
+      "elapsed_seconds": 1.2665,
+      "full_stdout_sha256": "976566fba8c51dec58c9d468a591a51d2c3a7964dca03bf346943c52280f99f2",
+      "full_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_result_lines": [
+        "RESULT event(LoginAccepted(u_2,a_5,n_2)) ==> event(LoginSubmitted(u_2,a_5,n_2)) is false.",
+        "RESULT inj-event(LoginAccepted(u_2,a_5,n_2)) ==> inj-event(LoginSubmitted(u_2,a_5,n_2)) is false.",
+        "RESULT not (event(RegisteredBio(u_2,b)) && attacker(b)) is true.",
+        "RESULT not event(LoginAccepted(u_2,a_5,n_2)) is false."
+      ]
+    },
+    {
+      "model": "phase2_both_disclosed_v133.pv",
+      "source_sha256": "3097a61b392db9b2005764eebee2ef9ad58c8daf78a3c7a9d84b4b5851f6edcd",
+      "exit_code": 0,
+      "timed_out": false,
+      "elapsed_seconds": 1.1965,
+      "full_stdout_sha256": "b1d9a0889adcf4a2fffbd0e56fed2479d3552faf7c2c700464135f404883b28b",
+      "full_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_result_lines": [
+        "RESULT event(LoginAccepted(u_2,a_5,n_2)) ==> event(LoginSubmitted(u_2,a_5,n_2)) is false.",
+        "RESULT inj-event(LoginAccepted(u_2,a_5,n_2)) ==> inj-event(LoginSubmitted(u_2,a_5,n_2)) is false.",
+        "RESULT not (event(RegisteredBio(u_2,b)) && attacker(b)) is false.",
+        "RESULT not event(LoginAccepted(u_2,a_5,n_2)) is false."
+      ]
+    },
+    {
+      "model": "phase2_no_freshness_v133.pv",
+      "source_sha256": "0ea154dc152d1bf7ced7ea382e0ef22c19b6c745eef60f854107abfd62fef689",
+      "exit_code": 0,
+      "timed_out": false,
+      "elapsed_seconds": 1.1329,
+      "full_stdout_sha256": "5426a174fc294b2dabd3e8b3d67aaf521adf4f8095e466cb5475406838c00783",
+      "full_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_result_lines": [
+        "RESULT event(LoginAccepted(u_2,a_5,n_2)) ==> event(LoginSubmitted(u_2,a_5,n_2)) is false.",
+        "RESULT inj-event(LoginAccepted(u_2,a_5,n_2)) ==> inj-event(LoginSubmitted(u_2,a_5,n_2)) is false.",
+        "RESULT not (event(RegisteredBio(u_2,b)) && attacker(b)) is true.",
+        "RESULT not event(LoginAccepted(u_2,a_5,n_2)) is false."
+      ]
+    },
+    {
+      "model": "rx_response_exposure_v133.pv",
+      "source_sha256": "ffe910e03b29978238b6a6090be72bee921801764b1b25f189ac9a7d8536b926",
+      "exit_code": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.455,
+      "full_stdout_sha256": "1dfb8591d3f355ea5e817914aaa240d45861416a96c5f4cf4c92cf034123ab39",
+      "full_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_result_lines": [
+        "RESULT not (event(SessionSecret(x,k)) && attacker(k)) is false.",
+        "RESULT not (event(ContentSecret(x,k)) && attacker(k)) is false.",
+        "RESULT not (event(MessageSecret(x,m_4)) && attacker(m_4)) is false."
+      ]
+    },
+    {
+      "model": "kw_without_sid_v133.pv",
+      "source_sha256": "5fd129316696b89bc719a4dba644ab878ae9455465d36a54b99d74777964ddd5",
+      "exit_code": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.6154,
+      "full_stdout_sha256": "41b1fd780bdd559f08314fbf20acd63be7213a37e74168a9418b371be4f32a73",
+      "full_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_result_lines": [
+        "RESULT event(RXAccepted(x,m_4)) ==> event(TXSigned(x,m_4)) is false.",
+        "RESULT event(RXAcceptedKey(x,ss_4,k)) ==> event(TXReadyKey(x,ss_4,k)) is false.",
+        "RESULT event(RXAccepted(x,m_4)) ==> event(TXSent(x,m_4)) is false.",
+        "RESULT not event(RXAccepted(x,m_4)) is false."
+      ]
+    },
+    {
+      "model": "report_evidence_exposure_v133.pv",
+      "source_sha256": "2311d0783edeb1631b76ba83326036e13c4fbdb82f1bb033c8b6f603d44a5e3b",
+      "exit_code": 0,
+      "timed_out": false,
+      "elapsed_seconds": 1.261,
+      "full_stdout_sha256": "07be4d4f7d838306ec9f2202b84c01244e449ce7fdf09471359f2d5f73973d28",
+      "full_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_result_lines": [
+        "RESULT event(RXAccepted(x,m_4)) ==> event(TXSigned(x,m_4)) is false.",
+        "RESULT event(RXAcceptedKey(x,ss_4,k)) ==> event(TXReadyKey(x,ss_4,k)) is false.",
+        "RESULT event(RXAccepted(x,m_4)) ==> event(TXSent(x,m_4)) is false.",
+        "RESULT not event(RXAccepted(x,m_4)) is false.",
+        "RESULT event(RXAccepted(x,m_4)) ==> event(ContentSigned(m_4)) is true.",
+        "RESULT inj-event(RXAccepted(x,m_4)) ==> inj-event(RXRequested(x)) is true."
+      ]
+    },
+    {
+      "model": "signature_exposure_v133.pv",
+      "source_sha256": "b2c9becd5aeed2f3f95e922bf4bc2e4ebdcae73230f15c68b552fe68ce85d2e8",
+      "exit_code": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.0184,
+      "full_stdout_sha256": "f90e65e7dba83edd56c8706ee976a73cc1bacb434e1d59d381126ec75e203b0a",
+      "full_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_result_lines": [
+        "RESULT event(EvidenceAccepted(rec_2,m_2)) ==> event(EvidenceSigned(rec_2,m_2)) is false.",
+        "RESULT not event(EvidenceAccepted(rec_2,m_2)) is false."
+      ]
+    },
+    {
+      "model": "connection_lifecycle_v133.pv",
+      "source_sha256": "836560b8942d3e290001bd97e74cb66b260dbfe86c7b34365a6a5ba3efe96b07",
+      "exit_code": 0,
+      "timed_out": false,
+      "elapsed_seconds": 34.8276,
+      "full_stdout_sha256": "c84b61ef452c0df1502f19c1f7eed50bd237cbb91aee0369c60b2482decf69e7",
+      "full_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_result_lines": [
+        "RESULT event(SessionAuthorized(a_10,x)) ==> event(ConnectionOpened(idTX[],a_10)) && event(ConnectionOpened(idRX[],a_10)) is true.",
+        "RESULT event(AcceptedInConnection(a_10,s_32)) ==> event(ConnectionOpened(idTX[],a_10)) && event(ConnectionOpened(idRX[],a_10)) is true.",
+        "RESULT not event(TwoSessionsOneConnection(a_10,s1_4,s2_4)) is false.",
+        "RESULT not event(TimeoutThenAccepted(a_10,s_32)) is false.",
+        "RESULT not event(ConnectionClosed(a_10)) is false.",
+        "RESULT event(ReconnectedAfterClose(a_10,b)) ==> event(ConnectionClosed(a_10)) && event(ConnectionOpened(idTX[],b)) && event(ConnectionOpened(idRX[],b)) is true.",
+        "RESULT not event(ReconnectedAfterClose(a_10,b)) is false."
+      ]
+    },
+    {
+      "model": "pending_disconnect_v133.pv",
+      "source_sha256": "f5f89df51c76c4ac4ea13555157491ce444c1d4ed1004b80155184c29478f297",
+      "exit_code": 0,
+      "timed_out": false,
+      "elapsed_seconds": 1.0396,
+      "full_stdout_sha256": "f0a619606db48348577199016dcb9d515d8a5a29f2385c1a81aaebb607977068",
+      "full_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_result_lines": [
+        "RESULT not event(RXAccepted(x,m_16)) is true.",
+        "RESULT not event(TXSent(x,m_16)) is false.",
+        "RESULT not event(ConnectionClosed(a_10)) is false."
+      ]
+    }
+  ]
+}
