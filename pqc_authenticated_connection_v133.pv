@@ -1,0 +1,349 @@
+(* Unbounded active-connection exchange abstraction v133.
+   Phase 2 authenticates both devices once for each fresh connection context.
+   Arbitrarily many fresh SID exchanges then use that authenticated context.
+   Exchanges may overlap in this conservative cryptographic abstraction.
+   Explicit closure and serial admission are checked separately by the bounded
+   connection_lifecycle_v133.pv and pending_disconnect_v133.pv models. *)
+type uid.
+type device.
+type challenge.
+type helper.
+type root.
+type epoch.
+type coins.
+type sessionid.
+type iv.
+type mac.
+type kemPK.
+type kemSK.
+type kemCT.
+type shared.
+type kek.
+type contentKey.
+type wrappedKey.
+type dsaPK.
+type dsaSK.
+type signature.
+type payloadCT.
+
+(* DIRECT-RESPONSE PHASE-2 EXTENSION. The encrypted envelope models
+   confidential, server-authenticated, replay-protected control transport.
+   Clients are NOT preauthenticated. ID requests, C/H replies and bio/Z
+   responses belong to one fresh transport access, before application SID. *)
+type caSK.
+type caPK.
+type loginCT.
+type accessid.
+type progress.
+const beginPair, ready, beginSession, disconnect, logout, restart, receiveTimeout: bitstring.
+const accepted, rejected, timedOut, closed: bitstring.
+const zeroAccepted, oneAccepted, severalAccepted: progress.
+event ConnectionOpened(uid,accessid).
+event ConnectionClosed(accessid).
+event SessionAuthorized(accessid,bitstring).
+event SessionEnded(accessid,sessionid,bitstring).
+event AcceptedInConnection(accessid,sessionid).
+event TwoSessionsOneConnection(accessid,sessionid,sessionid).
+event TimeoutThenAccepted(accessid,sessionid).
+event ReconnectedAfterClose(accessid,accessid).
+fun CAPublic(caSK): caPK.
+fun SHA256(bitstring): bitstring.
+(* Fixed-width R || bio serialization, with no domain-separation prefix. *)
+fun ResponseBio(root,bitstring): bitstring [data].
+fun AccessRequest(uid,accessid,bitstring,channel): bitstring [data].
+fun LoginBody(uid,accessid,bitstring,bitstring,bitstring,channel): bitstring [data].
+fun ControlSeal(bitstring,caPK): loginCT.
+reduc forall m:bitstring,k:caSK;
+ ControlOpen(ControlSeal(m,CAPublic(k)),k) = m.
+const requestTX,requestRX,loginTX,loginRX: bitstring.
+event RegisteredBio(uid,bitstring).
+event CRPPoolCollected(uid).
+event LoginSubmitted(uid,accessid,bitstring).
+event LoginAccepted(uid,accessid,bitstring).
+
+
+free idTX, idRX: uid.
+free c: channel.
+const request, certRX, certTX: bitstring.
+
+(* Exact successful reconstruction; no noise, entropy or learning model. *)
+fun PUF(device, challenge): root [private].
+fun MV(root): root.
+fun BCH(root): helper.
+fun BCH_decode(root, helper): root.
+equation forall d:device, ch:challenge;
+ BCH_decode(MV(PUF(d,ch)),BCH(MV(PUF(d,ch)))) = MV(PUF(d,ch)).
+
+(* The SAME root is the PQC KeyGen input and recipient credential-HMAC key. *)
+fun HMAC(root, bitstring): mac.
+fun bodyRX(sessionid, challenge, helper, kemPK): bitstring [data].
+fun bodyTX(sessionid, challenge, helper, dsaPK): bitstring [data].
+fun KEMpk(root): kemPK.
+fun KEMsk(root, coins): kemSK.
+fun EncapsCT(kemPK, coins): kemCT.
+fun EncapsSS(kemPK, coins): shared.
+fun Decaps(kemSK, kemCT): shared.
+equation forall d:root, z:coins, r:coins;
+ Decaps(KEMsk(d,z),EncapsCT(KEMpk(d),r)) = EncapsSS(KEMpk(d),r).
+(* This is SHA256(SS||SID)[last16], NOT a PUF-to-KeyGen KDF. *)
+fun ApplicationHashToKW(shared, sessionid): kek.
+fun Wrap(kek, contentKey): wrappedKey.
+reduc forall k:kek, m:contentKey; Unwrap(k,Wrap(k,m)) = m.
+fun DSApk(root): dsaPK.
+fun DSAsk(root): dsaSK.
+fun Sign(dsaSK, bitstring, coins): signature.
+reduc forall d:root, m:bitstring, r:coins;
+ Verify(DSApk(d),m,Sign(DSAsk(d),m,r)) = true.
+(* Event label for authenticated session state only. This tuple is NOT
+   encoded or passed to Sign/Verify; the application signing context is empty. *)
+fun SessionRecord(uid,uid,sessionid,epoch,epoch): bitstring [data].
+
+(* Ideal privacy plus only these selected CFB malleability operations.
+   This is NOT a complete bit/block-level or padding-oracle CFB model. *)
+fun Pair(bitstring, signature): bitstring [data].
+fun Report(kemCT,wrappedKey,payloadCT,iv): bitstring [data].
+fun CFBenc(contentKey,iv,bitstring): payloadCT.
+fun ChangeMessage(payloadCT,bitstring): payloadCT.
+fun ChangeSignature(payloadCT,signature): payloadCT.
+fun CFBdec(contentKey,iv,payloadCT): bitstring.
+equation forall k:contentKey,v:iv,p:bitstring;
+ CFBdec(k,v,CFBenc(k,v,p)) = p.
+equation forall k:contentKey,v:iv,m:bitstring,sg:signature,a:bitstring;
+ CFBdec(k,v,ChangeMessage(CFBenc(k,v,Pair(m,sg)),a)) = Pair(a,sg).
+equation forall k:contentKey,v:iv,m:bitstring,sg:signature,a:signature;
+ CFBdec(k,v,ChangeSignature(CFBenc(k,v,Pair(m,sg)),a)) = Pair(m,a).
+
+event Phase2Passed(uid,bitstring).
+event RootTX(root).
+event RootRX(root).
+event SessionSecret(bitstring,shared).
+event WrappingSecret(bitstring,kek).
+event ContentSecret(bitstring,contentKey).
+event MessageSecret(bitstring,bitstring).
+event SigningKey(bitstring,dsaSK).
+event DecapsulationKey(bitstring,kemSK).
+event SigningCoins(bitstring,coins).
+event IssuedRXKey(bitstring,kemPK).
+event IssuedTXKey(bitstring,dsaPK).
+event TXCheckedRX(bitstring,kemPK).
+event RXCheckedTX(bitstring,dsaPK).
+event RXRequested(bitstring).
+event TXSigned(bitstring,bitstring).
+event TXSent(bitstring,bitstring).
+event RXAccepted(bitstring,bitstring).
+event TXReadyKey(bitstring,shared,contentKey).
+event RXAcceptedKey(bitstring,shared,contentKey).
+
+(* Q01--Q08: actual-value secrecy, under ideal shared-root primitives. *)
+query x:bitstring,k:shared; event(SessionSecret(x,k)) && attacker(k).
+query x:bitstring,k:kek; event(WrappingSecret(x,k)) && attacker(k).
+query x:bitstring,k:contentKey; event(ContentSecret(x,k)) && attacker(k).
+query x:bitstring,m:bitstring; event(MessageSecret(x,m)) && attacker(m).
+query r:root; event(RootTX(r)) && attacker(r).
+query r:root; event(RootRX(r)) && attacker(r).
+query x:bitstring,k:dsaSK; event(SigningKey(x,k)) && attacker(k).
+query x:bitstring,k:kemSK; event(DecapsulationKey(x,k)) && attacker(k).
+(* Q09--Q10: issuer/recipient agree on the authenticated session record. *)
+query x:bitstring,pk:kemPK;
+ event(TXCheckedRX(x,pk)) ==> event(IssuedRXKey(x,pk)).
+query x:bitstring,pk:dsaPK;
+ event(RXCheckedTX(x,pk)) ==> event(IssuedTXKey(x,pk)).
+(* Q11--Q13: protocol-level same-session origin, single acceptance, session-key agreement. *)
+query x:bitstring,m:bitstring;
+ event(RXAccepted(x,m)) ==> event(TXSigned(x,m)).
+query x:bitstring,m:bitstring;
+ inj-event(RXAccepted(x,m)) ==> inj-event(RXRequested(x)).
+query x:bitstring,ss:shared,k:contentKey;
+ event(RXAcceptedKey(x,ss,k)) ==> event(TXReadyKey(x,ss,k)).
+(* Q14: receive completion follows explicit bio AND selected-response Z checks.
+   Human biometric liveness, entropy, revocation and physical status are not modeled. *)
+query x:bitstring,m:bitstring;
+ event(RXAccepted(x,m)) ==> event(Phase2Passed(idTX,x)) && event(Phase2Passed(idRX,x)).
+query x:bitstring,r:coins; event(SigningCoins(x,r)) && attacker(r).
+query x:bitstring,m:bitstring;
+ event(RXAccepted(x,m)) ==> event(TXSent(x,m)).
+(* Q17--Q18: ProVerif reports NOT-event FALSE for reachable honest completion. *)
+query x:bitstring,m:bitstring; event(TXSent(x,m)).
+query x:bitstring,m:bitstring; event(RXAccepted(x,m)).
+
+
+(* L01: every accepted access has an actual matching device submission. *)
+query u:uid,a:accessid,n:bitstring;
+ event(LoginAccepted(u,a,n)) ==> event(LoginSubmitted(u,a,n)).
+(* L02: the same access request is never accepted twice. *)
+query u:uid,a:accessid,n:bitstring;
+ inj-event(LoginAccepted(u,a,n)) ==> inj-event(LoginSubmitted(u,a,n)).
+(* L03: the registered biometric-hash verifier stays confidential. *)
+query u:uid,b:bitstring; event(RegisteredBio(u,b)) && attacker(b).
+(* L04: FALSE of the NOT-event query witnesses reachable login completion. *)
+query u:uid,a:accessid,n:bitstring; event(LoginAccepted(u,a,n)).
+
+let Server(st:channel,sr:channel,s:sessionid,et:epoch,er:epoch,
+           rTX:root,cTX:challenge,hTX:helper,rRX:root,cRX:challenge,hRX:helper) =
+ in(st,(=request,=idTX,=idRX,=s));
+ let rec = SessionRecord(idTX,idRX,s,et,er) in
+ let qTX = DSApk(rTX) in
+ let qRX = KEMpk(rRX) in
+ let tRX = HMAC(rTX,bodyRX(s,cTX,hTX,qRX)) in
+ let tTX = HMAC(rRX,bodyTX(s,cRX,hRX,qTX)) in
+ event IssuedRXKey(rec,qRX);
+ out(st,(certRX,idTX,idRX,s,et,er,cTX,hTX,qRX,tRX));
+ event IssuedTXKey(rec,qTX);
+ out(sr,(certTX,idTX,idRX,s,et,er,cRX,hRX,qTX,tTX)).
+
+let TX(rt:channel,st:channel,s:sessionid,et:epoch,er:epoch,
+       devTX:device,cTX:challenge,hTX:helper) =
+ in(rt,(=request,=idRX,=s));
+ out(st,(request,idTX,idRX,s));
+ in(st,(=certRX,=idTX,=idRX,=s,=et,=er,=cTX,=hTX,qRX:kemPK,tRX:mac));
+ let rTX = BCH_decode(MV(PUF(devTX,cTX)),hTX) in
+ if tRX = HMAC(rTX,bodyRX(s,cTX,hTX,qRX)) then
+ let rec = SessionRecord(idTX,idRX,s,et,er) in
+ event TXCheckedRX(rec,qRX);
+ let dTX = DSAsk(rTX) in
+ event SigningKey(rec,dTX);
+ new rKEM:coins;
+ new rSign:coins;
+ new kContent:contentKey;
+ new vector:iv;
+ new m:bitstring;
+ let ss = EncapsSS(qRX,rKEM) in
+ let eSS = EncapsCT(qRX,rKEM) in
+ let kWrap = ApplicationHashToKW(ss,s) in
+ let eSK = Wrap(kWrap,kContent) in
+ let sig = Sign(dTX,m,rSign) in
+ event SessionSecret(rec,ss);
+ event WrappingSecret(rec,kWrap);
+ event ContentSecret(rec,kContent);
+ event MessageSecret(rec,m);
+ event SigningCoins(rec,rSign);
+ event TXReadyKey(rec,ss,kContent);
+ event TXSigned(rec,m);
+ event TXSent(rec,m);
+ out(c,Report(eSS,eSK,CFBenc(kContent,vector,Pair(m,sig)),vector)).
+
+let RX(rt:channel,sr:channel,finish:channel,s:sessionid,et:epoch,er:epoch,
+       devRX:device,cRX:challenge,hRX:helper) =
+ let rec = SessionRecord(idTX,idRX,s,et,er) in
+ event RXRequested(rec);
+ out(rt,(request,idRX,s));
+ in(sr,(=certTX,=idTX,=idRX,=s,=et,=er,=cRX,=hRX,qTX:dsaPK,tTX:mac));
+ (* One public report attempt for this SID; parse/check failure ends this continuation. *)
+ in(c,action:bitstring);
+ let Report(eSS:kemCT,eSK:wrappedKey,ct:payloadCT,vector:iv) = action in
+ let rRX = BCH_decode(MV(PUF(devRX,cRX)),hRX) in
+ if tTX = HMAC(rRX,bodyTX(s,cRX,hRX,qTX)) then
+ event RXCheckedTX(rec,qTX);
+ new z:coins;
+ let dRX = KEMsk(rRX,z) in
+ event DecapsulationKey(rec,dRX);
+ let ss = Decaps(dRX,eSS) in
+ let kWrap = ApplicationHashToKW(ss,s) in
+ let kContent = Unwrap(kWrap,eSK) in
+ let Pair(m:bitstring,sig:signature) = CFBdec(kContent,vector,ct) in
+ if Verify(qTX,m,sig) = true then
+ event RXAcceptedKey(rec,ss,kContent);
+ event RXAccepted(rec,m);
+ out(finish,accepted)
+ else out(finish,rejected)
+ else out(finish,rejected)
+ else out(finish,rejected)
+ else out(finish,rejected)
+ else out(finish,rejected).
+
+(* The connection token is private and singular. The worker releases it only
+   after RX has reported a terminal outcome. No SID is put in the report. *)
+let Connected(pairGate:channel,a:accessid,unusedTX:channel,unusedRX:channel,
+              devTX:device,cTX:challenge,hTX:helper,rTX:root,
+              devRX:device,cRX:challenge,hRX:helper,rRX:root,et:epoch,er:epoch) =
+ !(new s:sessionid;
+   new rt:channel; new st:channel; new sr:channel; new finish:channel;
+   let rec = SessionRecord(idTX,idRX,s,et,er) in
+   event SessionAuthorized(a,rec);
+   event Phase2Passed(idTX,rec);
+   event Phase2Passed(idRX,rec);
+   out(c,(s,et,er));
+   (Server(st,sr,s,et,er,rTX,cTX,hTX,rRX,cRX,hRX) |
+    TX(rt,st,s,et,er,devTX,cTX,hTX) |
+    RX(rt,sr,finish,s,et,er,devRX,cRX,hRX))).
+
+let LoginClient(u:uid,requestTag:bitstring,loginTag:bitstring,a:accessid,
+                biometrics:bitstring,pk:caPK,control:channel,dev:device) =
+ new n:bitstring;
+ (* Application request: ID only. a/n/control abstract transport metadata. *)
+ out(c,(requestTag,ControlSeal(AccessRequest(u,a,n,control),pk)));
+ (* Reply path is private for the honest client; the Server authenticates
+    C/H and correlates it to this request in the protected transport. *)
+ in(control,(=a,=n,ch:challenge,h:helper));
+ let r = BCH_decode(MV(PUF(dev,ch)),h) in
+ let bio = SHA256(biometrics) in
+ let token = SHA256(ResponseBio(r,bio)) in
+ event LoginSubmitted(u,a,n);
+ (* Application response: bio || Z, not R and not raw biometrics. *)
+ out(c,(loginTag,ControlSeal(LoginBody(u,a,n,bio,token,control),pk))).
+
+let Setup(pairGate:channel,oldAccess:accessid,wasClosed:bool,devTX:device,cTX:challenge,hTX:helper,rTX:root,
+          devRX:device,cRX:challenge,hRX:helper,rRX:root,et:epoch,er:epoch,
+          bioTX:bitstring,bioRX:bitstring,biometricsTX:bitstring,biometricsRX:bitstring,kCA:caSK) =
+ new a:accessid;
+ out(c,(a,et,er));
+ new rt:channel; new st:channel; new sr:channel;
+ (LoginClient(idTX,requestTX,loginTX,a,biometricsTX,CAPublic(kCA),st,devTX) |
+  LoginClient(idRX,requestRX,loginRX,a,biometricsRX,CAPublic(kCA),sr,devRX) |
+  (in(c,(=requestTX,reqTX:loginCT));
+   let AccessRequest(=idTX,=a,nTX:bitstring,replyTX:channel) = ControlOpen(reqTX,kCA) in
+   (* Enrollment/current-CRP selection is a Server-policy premise. *)
+   out(replyTX,(a,nTX,cTX,hTX));
+   in(c,(=loginTX,ctTX:loginCT));
+   let LoginBody(=idTX,=a,=nTX,bTX:bitstring,zTX:bitstring,=replyTX) = ControlOpen(ctTX,kCA) in
+   if bTX = bioTX then
+   if zTX = SHA256(ResponseBio(rTX,bTX)) then
+   event LoginAccepted(idTX,a,nTX);
+   in(c,(=requestRX,reqRX:loginCT));
+   let AccessRequest(=idRX,=a,nRX:bitstring,replyRX:channel) = ControlOpen(reqRX,kCA) in
+   out(replyRX,(a,nRX,cRX,hRX));
+   in(c,(=loginRX,ctRX:loginCT));
+   let LoginBody(=idRX,=a,=nRX,bRX:bitstring,zRX:bitstring,=replyRX) = ControlOpen(ctRX,kCA) in
+   if bRX = bioRX then
+   if zRX = SHA256(ResponseBio(rRX,bRX)) then
+   event LoginAccepted(idRX,a,nRX);
+   event ConnectionOpened(idTX,a);
+   event ConnectionOpened(idRX,a);
+   if wasClosed = true then
+      event ReconnectedAfterClose(oldAccess,a);
+      Connected(pairGate,a,replyTX,replyRX,devTX,cTX,hTX,rTX,
+                devRX,cRX,hRX,rRX,et,er)
+   else Connected(pairGate,a,replyTX,replyRX,devTX,cTX,hTX,rTX,
+                  devRX,cRX,hRX,rRX,et,er))).
+
+process
+ new devTX:device;
+ new devRX:device;
+ new biometricsTX:bitstring;
+ new biometricsRX:bitstring;
+ new kCA:caSK;
+ out(c,CAPublic(kCA));
+ (* Hash once for enrollment after CRP-pool collection; the LoginClient
+    recomputes the same stable value when it receives C/H. *)
+ event CRPPoolCollected(idTX);
+ event CRPPoolCollected(idRX);
+ let bioTX = SHA256(biometricsTX) in
+ let bioRX = SHA256(biometricsRX) in
+ new enrollTX:channel; new enrollRX:channel;
+ (out(enrollTX,(idTX,bioTX)) |
+  out(enrollRX,(idRX,bioRX)) |
+  (in(enrollTX,(=idTX,registeredTX:bitstring));
+   in(enrollRX,(=idRX,registeredRX:bitstring));
+   event RegisteredBio(idTX,registeredTX);
+   event RegisteredBio(idRX,registeredRX);
+   !(new cTX:challenge; new cRX:challenge;
+     new et:epoch; new er:epoch;
+     let rTX = MV(PUF(devTX,cTX)) in
+     let rRX = MV(PUF(devRX,cRX)) in
+     let hTX = BCH(rTX) in
+     let hRX = BCH(rRX) in
+     event RootTX(rTX); event RootRX(rRX);
+     out(c,(idTX,idRX,cTX,hTX,cRX,hRX,et,er,DSApk(rTX),KEMpk(rRX)));
+     !(new pairGate:channel; new initialAccess:accessid;
+       Setup(pairGate,initialAccess,false,devTX,cTX,hTX,rTX,devRX,cRX,hRX,rRX,et,er,
+             registeredTX,registeredRX,biometricsTX,biometricsRX,kCA)))))
